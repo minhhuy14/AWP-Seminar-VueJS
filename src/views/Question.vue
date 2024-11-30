@@ -152,7 +152,7 @@ watch(() => route.path, (path, oldPath) => {
                         <div v-show="nextFlag" class="question-main">
                             <h4 class="title">Question {{ questionNumber }}</h4>
                             <p class="question-header">
-                                <span class="question-category">{{ question.category }}</span>
+                                <span class="question-category">Topic: {{ question.category }}</span>
                                 <span class="question-difficulty">{{ question.difficulty }}</span>
                             </p>
                             <p class="text" v-html="question.text"></p>
@@ -202,7 +202,7 @@ watch(() => route.path, (path, oldPath) => {
 <style scoped>
 .question-content {
     position: relative;
-    height: 42vh;
+    /* height: 42vh; */
     overflow-x: hidden;
 }
 .question-main {
@@ -243,16 +243,17 @@ watch(() => route.path, (path, oldPath) => {
 }
 .container {
     position: relative;
-    height: 100%;
+    margin-top: 2rem;
+    /* height: 100%; */
     display: flex;
     justify-content: center;
     align-items: center;
 }
 .question {
     position: relative;
-    width: 100%;
-    max-width: 500px;
-    padding: 2rem 1rem;
+    width: 80%;
+    /*max-width: 500px; */
+    /* padding: 2rem 1rem; */
 }
 .title {
     font-size: 1.2rem;

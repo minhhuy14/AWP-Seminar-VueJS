@@ -17,9 +17,10 @@ export function getToday() {
 }
 
 // https://opentdb.com/api_config.php
-export async function getRemoteData() {
+export async function getRemoteData(url) {
+    console.log(url);
     //https://opentdb.com/api.php?amount=10&type=multiple
     //https://opentdb.com/api.php?amount=10&difficulty=easy&type=multiple
-    const response = await fetch("https://opentdb.com/api.php?amount=10&type=multiple")
-    return await response.json()
+    const response = await fetch(url);
+    return await response.json();
 }
