@@ -2,7 +2,7 @@
 import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { useCounterStore } from "../stores/counter";
-import { getRemoteData, shuffle } from "../lib/utils";
+import { shuffle } from "../lib/utils";
 
 import StarButton from '../components/StartButton.vue'
 
@@ -17,81 +17,64 @@ const difficulty = ref('any');
 const type = ref('any');
 const amount = ref(10);
 
-function startQuiz() {
+const processQuestions = (data) => {
+    if (!data || !data.results) return null;
 
-    store.resetScore()
-    store.increment()
-    store.setQuestionIndex(0)
-
-    router.push('/question/0')
-
-}
-
-onMounted(async () => {
-
-    store.resetQuiz()
-
-    if(import.meta.env.VITE_APP_USE_LOCALDATA === "true") return;
-    
+    return data.results.map((item, index) => {
+        const answers = [item.correct_answer, ...item.incorrect_answers];
+        const choices = shuffle(
+            answers.map((ans, i) => ({ id: i, text: ans }))
+        );
+        return {
+            ...item,
+            id: index,
+            text: item.question,
+            choices,
+            answer: 0,
+        };
+    });
+};
+const fetchQuestions = async () => {
     loading.value = true;
+    error.value = false;
 
     let url = `https://opentdb.com/api.php?amount=${amount.value}`;
+    if (category.value !== 'any') url += `&category=${category.value}`;
+    if (difficulty.value !== 'any') url += `&difficulty=${difficulty.value}`;
+    if (type.value !== 'any') url += `&type=${type.value}`;
 
-    console.log(category.value);
-    if (category.value!== 'any') {
-        url += `&category=${category.value}`;
+    try {
+        const response = await fetch(url);
+        const data = await response.json();
+        return processQuestions(data);
+    } catch (err) {
+        console.error(err);
+        error.value = true;
+        return null;
+    } finally {
+        loading.value = false;
     }
-    if (difficulty.value!== 'any') {
-        url += `&difficulty=${difficulty.value}`;
+};
+
+
+const startQuiz = async () => {
+    const questions = await fetchQuestions();
+    if (questions) {
+        store.setQuizData(questions);
+        store.resetScore();
+        store.increment();
+        store.setQuestionIndex(0);
+        router.push('/question/0');
     }
-    if (type.value!== 'any') {
-        url += `&type=${type.value}`;
+};
+
+onMounted(async () => {
+    store.resetQuiz();
+    const questions = await fetchQuestions();
+    if (questions) {
+        store.setQuizData(questions);
     }
-
-
-    getRemoteData(url).then(data => {
-        
-        let raw_questions = data.results ? data.results : null
-        if(raw_questions) {
-
-            raw_questions = raw_questions.map((item, index) => {
-
-                const answers = [item.correct_answer, ...item.incorrect_answers]
-
-                let choices = answers.map((ans, i) => {
-                    return {
-                        id: i,
-                        text: ans,
-                    }
-                })
-
-                shuffle(choices)
-
-                return {
-                    ...item,
-                    answers,
-                    id: index,
-                    text: item.question,
-                    answer: 0,
-                    choices,
-                }
-            })
-
-            store.setQuizData(raw_questions)
-
-        }
-
-        loading.value = false
-
-    }).catch(err => {
-        console.log(err)
-
-        loading.value = false
-        error.value = true
-
-    })
-
-})
+});
 </script>
 
 <template>
